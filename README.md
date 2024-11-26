@@ -1,6 +1,15 @@
 # fs-pokedex
 A web app for a full stack Pokedex.
 
+## Note:
+This is the sample project Coffman gave us. We can modify it to better suit our needs.
+
+Right now, this code won't work. You need to host it on your school account's public_html folder and have the SQL files properly uploaded to your database in order for it to work.
+
+Furthermore, config.php needs your username and password when you host it on the school servers for it to work.
+
+<br>
+<br>
 
 # Quick Guide to Collaborating on this project
 ---
@@ -28,7 +37,7 @@ A web app for a full stack Pokedex.
 2. Commit your changes with a message:
    ```bash
     git commit -m "Describe your changes here"
-2a. It is best to follow [GitHub's standard naming conventions (https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13).
+2a. It is best to follow [GitHub's standard naming conventions](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13).
 
 ## Step 4: Push your branch
 1. Push your branch to GitHub:
