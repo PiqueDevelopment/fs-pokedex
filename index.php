@@ -40,6 +40,7 @@ require_once "config.php";
                         <h2 class="pull-left">Generation 1 Pokemon Glossary</h2>
                         <a href="createPokemon.php" class="btn btn-success pull-right">Add New Pokemon</a>
                         <a href="deletePokemon.php" class="btn btn-danger pull-right">Delete A Pokemon</a>
+
                     </div>
 
                     <?php
@@ -87,7 +88,54 @@ require_once "config.php";
                     } else {
                         echo "ERROR: Could not able to execute $sql. <br>" . mysqli_error($link);
                     }
+                    ?>
+                     <!-- Team Section -->
+                     <div class="page-header clearfix">
+                        <h2 class="pull-left">Teams Glossary</h2>
+                        <a href="createTeam.php" class="btn btn-success pull-right">Add New Team</a>
+                        <a href="deleteTeam.php" class="btn btn-danger pull-right">Delete a Team</a>
+                    </div>
 
+                    <?php
+                    // Fetch and display Team data
+                    $teamSql = "
+                        SELECT 
+                            t.team_id, 
+                            t.team_name, 
+                            GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', ') AS team_members
+                        FROM 
+                            Teams t
+                        LEFT JOIN 
+                            Pokemon_Team pt ON t.team_id = pt.team_id
+                        LEFT JOIN 
+                            Pokemon p ON pt.pokemon_id = p.pokemon_id
+                        GROUP BY 
+                            t.team_id, t.team_name
+                    ";
+
+                    if ($result = mysqli_query($link, $teamSql)) {
+                        if (mysqli_num_rows($result) > 0) {
+                            echo "<h3>Team List</h3>";
+                            echo "<table class='table table-bordered table-striped'>";
+                            echo "<thead><tr><th>ID</th><th>Team Name</th><th>Team Members</th><th>Action</th></tr></thead><tbody>";
+                            while ($row = mysqli_fetch_array($result)) {
+                                echo "<tr>";
+                                echo "<td>" . $row['team_id'] . "</td>";
+                                echo "<td>" . $row['team_name'] . "</td>";
+                                echo "<td>" . ($row['team_members'] ? $row['team_members'] : "<em>No members yet</em>") . "</td>";
+                                echo "<td>";
+                                echo "<a href='updateTeam.php?team_id=" . $row['team_id'] . "' class='btn btn-info'>Update</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            echo "</tbody></table>";
+                            mysqli_free_result($result);
+                        } else {
+                            echo "<p class='lead'><em>No teams were found.</em></p>";
+                        }
+                    } else {
+                        echo "ERROR: Could not execute $teamSql. " . mysqli_error($link);
+                    }
                     mysqli_close($link);
                     ?>
                 </div>
