@@ -2,11 +2,9 @@
 A web app for a full stack Pokedex.
 
 ## Note:
-This is the sample project Coffman gave us. We can modify it to better suit our needs.
-
-Right now, this code won't work. You need to host it on your school account's public_html folder and have the SQL files properly uploaded to your database in order for it to work.
-
-Furthermore, config.php needs your username and password when you host it on the school servers for it to work.
+The database will be deleted soon. A copy of the database is available in the /sql folder on GitHub.
+The code alone won't work. You need to serve it on your school account's public_html folder and have the SQL files properly uploaded to your database in order for it to work.
+Furthermore, config.php needs your username and password when you host it on the servers for it to work.
 
 <br>
 <br>
