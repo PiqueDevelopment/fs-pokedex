@@ -115,9 +115,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <title>Update Team</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
     <style type="text/css">
-        .wrapper{
+        .wrapper {
             width: 500px;
             margin: 0 auto;
+        }
+
+        /* Grid layout for checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
+            gap: 10px; /* Space between checkboxes */
+        }
+
+        .checkbox-grid label {
+            display: block;
         }
     </style>
 </head>
@@ -143,28 +154,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         </div>
                         <div class="form-group">
                             <label>Pokémon Members</label><br>
-                            <?php
-                            // Fetch available Pokémon
-                            $pokemon_sql = "SELECT pokemon_id, name FROM Pokemon";
-                            if($result = mysqli_query($link, $pokemon_sql)){
-                                while($row = mysqli_fetch_array($result)){
-                                    $checked = "";
-                                    // Check if the Pokémon is already part of the team
-                                    $check_team_sql = "SELECT * FROM Pokemon_Team WHERE team_id = ? AND pokemon_id = ?";
-                                    if($check_stmt = mysqli_prepare($link, $check_team_sql)){
-                                        mysqli_stmt_bind_param($check_stmt, "ii", $param_team_id, $row["pokemon_id"]);
-                                        mysqli_stmt_execute($check_stmt);
-                                        $check_result = mysqli_stmt_get_result($check_stmt);
-                                        if(mysqli_num_rows($check_result) > 0){
-                                            $checked = "checked";
+                            <div class="checkbox-grid">
+                                <?php
+                                // Fetch available Pokémon
+                                $pokemon_sql = "SELECT pokemon_id, name FROM Pokemon";
+                                if($result = mysqli_query($link, $pokemon_sql)){
+                                    while($row = mysqli_fetch_array($result)){
+                                        $checked = "";
+                                        // Check if the Pokémon is already part of the team
+                                        $check_team_sql = "SELECT * FROM Pokemon_Team WHERE team_id = ? AND pokemon_id = ?";
+                                        if($check_stmt = mysqli_prepare($link, $check_team_sql)){
+                                            mysqli_stmt_bind_param($check_stmt, "ii", $param_team_id, $row["pokemon_id"]);
+                                            mysqli_stmt_execute($check_stmt);
+                                            $check_result = mysqli_stmt_get_result($check_stmt);
+                                            if(mysqli_num_rows($check_result) > 0){
+                                                $checked = "checked";
+                                            }
+                                            mysqli_stmt_close($check_stmt);
                                         }
-                                        mysqli_stmt_close($check_stmt);
-                                    }
 
-                                    echo "<label><input type='checkbox' name='pokemon_ids[]' value='" . $row["pokemon_id"] . "' $checked> " . $row["name"] . "</label><br>";
+                                        echo "<label><input type='checkbox' name='pokemon_ids[]' value='" . $row["pokemon_id"] . "' $checked> " . $row["name"] . "</label>";
+                                    }
                                 }
-                            }
-                            ?>
+                                ?>
+                            </div>
                         </div>
                         <input type="submit" class="btn btn-primary" value="Submit">
                         <a href="index.php" class="btn btn-default">Cancel</a>

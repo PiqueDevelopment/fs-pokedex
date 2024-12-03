@@ -117,7 +117,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Update Pokémon</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
     <style type="text/css">
-        .wrapper{width: 500px; margin: 0 auto;}
+        .wrapper {
+            width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Grid layout for checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
+            gap: 10px; /* Space between checkboxes */
+        }
+
+        .checkbox-grid label {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -148,48 +162,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                         <div class="form-group">
                             <label>Types</label><br>
-                            <?php
-                            // Fetch available types
-                            $sql_types = "SELECT type_id, type_name FROM Type";
-                            $result_types = mysqli_query($link, $sql_types);
-                            while ($row_type = mysqli_fetch_array($result_types)) {
-                                // Check if the type is already associated with this Pokémon
-                                $checked = "";
-                                $sql_check_type = "SELECT * FROM Pokemon_Type WHERE pokemon_id = ? AND type_id = ?";
-                                if ($stmt_check_type = mysqli_prepare($link, $sql_check_type)) {
-                                    mysqli_stmt_bind_param($stmt_check_type, "ii", $pokemon_id, $row_type['type_id']);
-                                    mysqli_stmt_execute($stmt_check_type);
-                                    $result_check_type = mysqli_stmt_get_result($stmt_check_type);
-                                    if (mysqli_num_rows($result_check_type) > 0) {
-                                        $checked = "checked";
+                            <div class="checkbox-grid">
+                                <?php
+                                // Fetch available types
+                                $sql_types = "SELECT type_id, type_name FROM Type";
+                                $result_types = mysqli_query($link, $sql_types);
+                                while ($row_type = mysqli_fetch_array($result_types)) {
+                                    // Check if the type is already associated with this Pokémon
+                                    $checked = "";
+                                    $sql_check_type = "SELECT * FROM Pokemon_Type WHERE pokemon_id = ? AND type_id = ?";
+                                    if ($stmt_check_type = mysqli_prepare($link, $sql_check_type)) {
+                                        mysqli_stmt_bind_param($stmt_check_type, "ii", $pokemon_id, $row_type['type_id']);
+                                        mysqli_stmt_execute($stmt_check_type);
+                                        $result_check_type = mysqli_stmt_get_result($stmt_check_type);
+                                        if (mysqli_num_rows($result_check_type) > 0) {
+                                            $checked = "checked";
+                                        }
                                     }
+                                    echo "<label><input type='checkbox' name='type[]' value='" . $row_type['type_id'] . "' $checked> " . $row_type['type_name'] . "</label>";
                                 }
-                                echo "<label><input type='checkbox' name='type[]' value='" . $row_type['type_id'] . "' $checked> " . $row_type['type_name'] . "</label><br>";
-                            }
-                            ?>
+                                ?>
+                            </div>
                             <span class="help-block"><?php echo $type_err; ?></span>
                         </div>
                         <div class="form-group">
                             <label>Abilities</label><br>
-                            <?php
-                            // Fetch available abilities
-                            $sql_abilities = "SELECT ability_id, ability_name FROM Ability";
-                            $result_abilities = mysqli_query($link, $sql_abilities);
-                            while ($row_ability = mysqli_fetch_array($result_abilities)) {
-                                // Check if the ability is already associated with this Pokémon
-                                $checked = "";
-                                $sql_check_ability = "SELECT * FROM Pokemon_Ability WHERE pokemon_id = ? AND ability_id = ?";
-                                if ($stmt_check_ability = mysqli_prepare($link, $sql_check_ability)) {
-                                    mysqli_stmt_bind_param($stmt_check_ability, "ii", $pokemon_id, $row_ability['ability_id']);
-                                    mysqli_stmt_execute($stmt_check_ability);
-                                    $result_check_ability = mysqli_stmt_get_result($stmt_check_ability);
-                                    if (mysqli_num_rows($result_check_ability) > 0) {
-                                        $checked = "checked";
+                            <div class="checkbox-grid">
+                                <?php
+                                // Fetch available abilities
+                                $sql_abilities = "SELECT ability_id, ability_name FROM Ability";
+                                $result_abilities = mysqli_query($link, $sql_abilities);
+                                while ($row_ability = mysqli_fetch_array($result_abilities)) {
+                                    // Check if the ability is already associated with this Pokémon
+                                    $checked = "";
+                                    $sql_check_ability = "SELECT * FROM Pokemon_Ability WHERE pokemon_id = ? AND ability_id = ?";
+                                    if ($stmt_check_ability = mysqli_prepare($link, $sql_check_ability)) {
+                                        mysqli_stmt_bind_param($stmt_check_ability, "ii", $pokemon_id, $row_ability['ability_id']);
+                                        mysqli_stmt_execute($stmt_check_ability);
+                                        $result_check_ability = mysqli_stmt_get_result($stmt_check_ability);
+                                        if (mysqli_num_rows($result_check_ability) > 0) {
+                                            $checked = "checked";
+                                        }
                                     }
+                                    echo "<label><input type='checkbox' name='abilities[]' value='" . $row_ability['ability_id'] . "' $checked> " . $row_ability['ability_name'] . "</label>";
                                 }
-                                echo "<label><input type='checkbox' name='abilities[]' value='" . $row_ability['ability_id'] . "' $checked> " . $row_ability['ability_name'] . "</label><br>";
-                            }
-                            ?>
+                                ?>
+                            </div>
                             <span class="help-block"><?php echo $abilities_err; ?></span>
                         </div>
                         <input type="submit" class="btn btn-primary" value="Update">
