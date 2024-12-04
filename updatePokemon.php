@@ -122,15 +122,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin: 0 auto;
         }
 
-        /* Grid layout for checkboxes */
-        .checkbox-grid {
+        /* Grid layout for types (3 columns) */
+        .type-checkbox-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
-            gap: 10px; /* Space between checkboxes */
+            gap: 5px; /* Space between checkboxes */
         }
 
-        .checkbox-grid label {
+        .type-checkbox-grid label {
             display: block;
+        }
+
+        /* Grid layout for abilities (5 columns) */
+        .ability-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);  /* 5 equal-width columns */
+            gap: 10px; /* Space between checkboxes */
+            margin-left: -150px;  /* Extend the grid beyond the wrapper */
+            margin-right: -150px; /* Extend the grid beyond the wrapper */
+        }
+
+        .ability-checkbox-grid label {
+            display: block;
+
+        }
+
+        .abilities-label {
+            position: relative;
+            left: -150px; /* Shift the label 50px to the left */
         }
     </style>
 </head>
@@ -160,9 +179,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </select>
                             <span class="help-block"><?php echo $gender_err; ?></span>
                         </div>
+
+                        <!-- Types Checkbox Grid (3 columns) -->
                         <div class="form-group">
                             <label>Types</label><br>
-                            <div class="checkbox-grid">
+                            <div class="type-checkbox-grid">
                                 <?php
                                 // Fetch available types
                                 $sql_types = "SELECT type_id, type_name FROM Type";
@@ -185,9 +206,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                             <span class="help-block"><?php echo $type_err; ?></span>
                         </div>
+
+                        <!-- Abilities Checkbox Grid (5 columns, extends beyond wrapper) -->
                         <div class="form-group">
-                            <label>Abilities</label><br>
-                            <div class="checkbox-grid">
+                        <label class="abilities-label">Abilities</label><br>
+                            <div class="ability-checkbox-grid">
                                 <?php
                                 // Fetch available abilities
                                 $sql_abilities = "SELECT ability_id, ability_name FROM Ability";
@@ -210,6 +233,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                             <span class="help-block"><?php echo $abilities_err; ?></span>
                         </div>
+
                         <input type="submit" class="btn btn-primary" value="Update">
                         <a href="index.php" class="btn btn-default">Cancel</a>
                     </form>

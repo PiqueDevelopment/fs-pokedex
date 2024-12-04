@@ -120,17 +120,48 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             margin: 0 auto;
         }
 
-        /* Grid layout for checkboxes */
+        /* Adjust the checkbox grid layout to make checkboxes wider */
         .checkbox-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
+            grid-template-columns: repeat(5, 1fr);  /* 5 columns */
             gap: 10px; /* Space between checkboxes */
+            margin-left: -50px;  /* Extend the grid beyond the wrapper */
+            margin-right: -50px; /* Extend the grid beyond the wrapper */
         }
 
+        /* Ensure labels don't wrap and increase the width */
         .checkbox-grid label {
             display: block;
+            white-space: normal;  /* Allow the label to wrap if needed */
+            width: 100%; /* Allow the labels to take up full width in their grid cells */
+            word-wrap: break-word;  /* Allow long Pokémon names to break and wrap */
         }
-    </style>
+
+        /* Make the layout responsive for smaller screens */
+        @media (max-width: 768px) {
+            .checkbox-grid {
+                grid-template-columns: repeat(3, 1fr);  /* 3 columns on smaller screens */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .checkbox-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile screens */
+            }
+        }
+
+        /* Extend title label outside the wrapper */
+        .page-header {
+            margin-left: -20px;  /* Extend the title beyond the wrapper */
+            margin-right: -20px; /* Extend the title beyond the wrapper */
+        }
+
+        /* New style to apply to the label */
+        .pokemon-label {
+            position: relative;
+            left: -50px; /* Shift the label 50px to the left */
+        }
+        </style>
 </head>
 <body>
     <div class="wrapper">
@@ -153,7 +184,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             <span class="help-block"><?php echo $team_name_err;?></span>
                         </div>
                         <div class="form-group">
-                            <label>Pokémon Members</label><br>
+                        <label class="pokemon-label">Pokémon Members</label><br>
                             <div class="checkbox-grid">
                                 <?php
                                 // Fetch available Pokémon
