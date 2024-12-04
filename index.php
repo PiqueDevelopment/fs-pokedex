@@ -1,6 +1,55 @@
 <?php
 session_start();
 require_once "config.php";
+
+// Initialize the search query
+$search_query = isset($_GET['search-query']) ? $_GET['search-query'] : '';
+
+// Split the query by commas into search terms
+$search_terms = array_map('trim', explode(',', $search_query));
+
+// Build the WHERE clause based on search terms
+$whereClauses = [];
+foreach ($search_terms as $term) {
+    if (!empty($term)) {
+        // Match the term in the name, gender, type, or ability fields
+        // For types and abilities, we handle multiple matches, allowing for terms like 'Grass, Poison'
+        $whereClauses[] = "(p.name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
+                            p.gender LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
+                            t.type_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
+                            a.ability_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%')";
+    }
+}
+
+// If there are multiple terms, they should be treated as OR conditions between each term
+$whereSql = '';
+if (count($whereClauses) > 0) {
+    $whereSql = "WHERE " . implode(" AND ", $whereClauses);
+}
+
+// Fetch Pokémon data with the WHERE clause applied (search)
+$sql = "
+    SELECT 
+        p.pokemon_id,
+        p.name,
+        p.gender,
+        GROUP_CONCAT(DISTINCT t.type_name ORDER BY t.type_name SEPARATOR ', ') AS types,
+        GROUP_CONCAT(DISTINCT a.ability_name ORDER BY a.ability_name SEPARATOR ', ') AS abilities
+    FROM 
+        Pokemon p
+    LEFT JOIN 
+        Pokemon_Type pt ON p.pokemon_id = pt.pokemon_id
+    LEFT JOIN 
+        Type t ON pt.type_id = t.type_id
+    LEFT JOIN 
+        Pokemon_Ability pa ON p.pokemon_id = pa.pokemon_id
+    LEFT JOIN 
+        Ability a ON pa.ability_id = a.ability_id
+    $whereSql
+    GROUP BY 
+        p.pokemon_id, p.name, p.gender
+";
+
 ?>
 
 <!DOCTYPE html>
@@ -40,32 +89,22 @@ require_once "config.php";
                         <h2 class="pull-left">Generation 1 Pokemon Glossary</h2>
                         <a href="createPokemon.php" class="btn btn-success pull-right">Add New Pokemon</a>
                         <a href="deletePokemon.php" class="btn btn-danger pull-right">Delete A Pokemon</a>
-
                     </div>
 
-                    <?php
-                    // Fetch and display Pokemon data
-                    $sql = "
-                        SELECT 
-                            p.pokemon_id,
-                            p.name,
-                            p.gender,
-                            GROUP_CONCAT(DISTINCT t.type_name ORDER BY t.type_name SEPARATOR ', ') AS types,
-                            GROUP_CONCAT(DISTINCT a.ability_name ORDER BY a.ability_name SEPARATOR ', ') AS abilities
-                        FROM 
-                            Pokemon p
-                        LEFT JOIN 
-                            Pokemon_Type pt ON p.pokemon_id = pt.pokemon_id
-                        LEFT JOIN 
-                            Type t ON pt.type_id = t.type_id
-                        LEFT JOIN 
-                            Pokemon_Ability pa ON p.pokemon_id = pa.pokemon_id
-                        LEFT JOIN 
-                            Ability a ON pa.ability_id = a.ability_id
-                        GROUP BY 
-                            p.pokemon_id, p.name, p.gender
-                    ";
+                    <!-- Search Form -->
+                    <div class="page-header clearfix">
+                        <h2 class="pull-left">Search by Attributes (Free-form)</h2>
+                    </div>
+                    <form action="index.php" method="get" class="form-inline">
+                        <div class="form-group">
+                            <label for="search-query">Search (name, gender, type, ability):</label>
+                            <input type="text" id="search-query" name="search-query" class="form-control" placeholder="Search (e.g., Bulbasaur, Grass, Male)" value="<?php echo htmlspecialchars($search_query); ?>">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
 
+                    <?php
+                    // Fetch and display Pokémon data with search applied
                     if ($result = mysqli_query($link, $sql)) {
                         if (mysqli_num_rows($result) > 0) {
                             echo "<table class='table table-bordered table-striped'>";
@@ -86,11 +125,13 @@ require_once "config.php";
                             echo "<p class='lead'><em>No records were found.</em></p>";
                         }
                     } else {
-                        echo "ERROR: Could not able to execute $sql. <br>" . mysqli_error($link);
+                        echo "ERROR: Could not execute $sql. <br>" . mysqli_error($link);
                     }
+
                     ?>
-                     <!-- Team Section -->
-                     <div class="page-header clearfix">
+
+                    <!-- Team Section -->
+                    <div class="page-header clearfix">
                         <h2 class="pull-left">Teams Glossary</h2>
                         <a href="createTeam.php" class="btn btn-success pull-right">Add New Team</a>
                         <a href="deleteTeam.php" class="btn btn-danger pull-right">Delete a Team</a>
@@ -136,6 +177,7 @@ require_once "config.php";
                     } else {
                         echo "ERROR: Could not execute $teamSql. " . mysqli_error($link);
                     }
+
                     mysqli_close($link);
                     ?>
                 </div>
