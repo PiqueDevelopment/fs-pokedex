@@ -13,9 +13,9 @@ $whereClauses = [];
 foreach ($search_terms as $term) {
     if (!empty($term)) {
         // Match the term in the name, gender, type, or ability fields
-        // For types and abilities, we handle multiple matches, allowing for terms like 'Grass, Poison'
+        // For gender, we use exact matches rather than LIKE
         $whereClauses[] = "(p.name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
-                            p.gender LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
+                            p.gender = '" . mysqli_real_escape_string($link, $term) . "' OR
                             t.type_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
                             a.ability_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%')";
     }
