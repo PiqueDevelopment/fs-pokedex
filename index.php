@@ -56,18 +56,13 @@ $sql = "
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pokedex</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Full Stack Pokedex</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style type="text/css">
-        .wrapper { width: 70%; margin: 0 auto; }
-        table tr td:last-child a { margin-right: 15px; }
-    </style>
-    <script type="text/javascript">
-        $(document).ready(function() {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script>
+        $(document).ready(function(){
             $('[data-toggle="tooltip"]').tooltip();   
         });
     </script>
@@ -77,7 +72,7 @@ $sql = "
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="page-header clearfix">
+                    <div class="page-header">
                         <h2>Full Stack Pokedex</h2>
                         <p>Project should include CRUD operations. In this website you can:</p>
                         <ol>
@@ -86,21 +81,22 @@ $sql = "
                             <li>UPDATE Pokemon</li>
                             <li>DELETE Pokemon</li>
                         </ol>
-                        <h2 class="pull-left">Generation 1 Pokemon Glossary</h2>
-                        <a href="createPokemon.php" class="btn btn-success pull-right">Add New Pokemon</a>
-                        <a href="deletePokemon.php" class="btn btn-danger pull-right">Delete A Pokemon</a>
+                        <div class="header-actions">
+                            <h2>Pokemon Generation 1 Glossary</h2>
+                        </div>
                     </div>
 
                     <!-- Search Form -->
-                    <div class="page-header clearfix">
-                        <h2 class="pull-left">Search by Attributes (Free-form)</h2>
-                    </div>
                     <form action="index.php" method="get" class="form-inline">
                         <div class="form-group">
                             <label for="search-query">Search (name, gender, type, ability):</label>
                             <input type="text" id="search-query" name="search-query" class="form-control" placeholder="Search (e.g., Bulbasaur, Grass, Male)" value="<?php echo htmlspecialchars($search_query); ?>">
                         </div>
                         <button type="submit" class="btn btn-primary">Search</button>
+                        <div class="button-group">
+                            <a href="createPokemon.php" class="btn btn-success">Add New Pokemon</a>
+                            <a href="deletePokemon.php" class="btn btn-danger">Delete A Pokemon</a>
+                        </div>
                     </form>
 
                     <?php
@@ -125,7 +121,7 @@ $sql = "
                             echo "<p class='lead'><em>No records were found.</em></p>";
                         }
                     } else {
-                        echo "ERROR: Could not execute $sql. <br>" . mysqli_error($link);
+                        echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
                     }
 
                     ?>
@@ -133,8 +129,14 @@ $sql = "
                     <!-- Team Section -->
                     <div class="page-header clearfix">
                         <h2 class="pull-left">Teams Glossary</h2>
-                        <a href="createTeam.php" class="btn btn-success pull-right">Add New Team</a>
-                        <a href="deleteTeam.php" class="btn btn-danger pull-right">Delete a Team</a>
+                    </div>
+                    <div class="clearfix align-center" style="margin-bottom: 20px;">
+                        <h3 class="pull-left">Team List</h3>
+                        <div class="button-group pull-right">
+                            <a href="createTeam.php" class="btn btn-success">Add New Team</a>
+                            <a href="deleteTeam.php" class="btn btn-danger">Delete a Team</a>
+                        </div>
+                    </div>
                     </div>
 
                     <?php
@@ -156,7 +158,6 @@ $sql = "
 
                     if ($result = mysqli_query($link, $teamSql)) {
                         if (mysqli_num_rows($result) > 0) {
-                            echo "<h3>Team List</h3>";
                             echo "<table class='table table-bordered table-striped'>";
                             echo "<thead><tr><th>ID</th><th>Team Name</th><th>Team Members</th><th>Action</th></tr></thead><tbody>";
                             while ($row = mysqli_fetch_array($result)) {
@@ -178,10 +179,11 @@ $sql = "
                         echo "ERROR: Could not execute $teamSql. " . mysqli_error($link);
                     }
 
+                    // Close Connection
                     mysqli_close($link);
                     ?>
                 </div>
-            </div>
+            </div>        
         </div>
     </div>
 </body>
