@@ -91,7 +91,7 @@ $sql = "
                         <a href="deletePokemon.php" class="btn btn-danger pull-right">Delete A Pokemon</a>
                     </div>
 
-                    // Search for Pokemon
+                    <!-- Search Form -->
                     <form action="index.php" method="get" class="form-inline">
                         <div class="form-group">
                             <label for="search-query">Search (name, gender, type, ability):</label>
