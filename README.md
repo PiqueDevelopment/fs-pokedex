@@ -1,5 +1,6 @@
 # fs-pokedex
 A web app for a full stack Pokedex.
+![image](https://raw.githubusercontent.com/PiqueDevelopment/fs-pokedex/refs/heads/main/preview.png)
 
 ## Note:
 The database will be deleted soon. A copy of the database is available in the /sql folder on GitHub.
