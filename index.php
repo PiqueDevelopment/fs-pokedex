@@ -2,29 +2,101 @@
 session_start();
 require_once "config.php";
 
-// Initialize the search query
-$search_query = isset($_GET['search-query']) ? $_GET['search-query'] : '';
+// Initialize search query for each field
+$name_query = isset($_GET['name-query']) ? $_GET['name-query'] : '';
+$gender_query = isset($_GET['gender-query']) ? $_GET['gender-query'] : '';
+$type_query = isset($_GET['type-query']) ? $_GET['type-query'] : '';
+$ability_query = isset($_GET['ability-query']) ? $_GET['ability-query'] : '';
 
-// Split the query by commas into search terms
-$search_terms = array_map('trim', explode(',', $search_query));
+// Split the abilities into separate terms (if applicable)
+$ability_terms = array_map('trim', explode(',', $ability_query));
 
 // Build the WHERE clause based on search terms
 $whereClauses = [];
-foreach ($search_terms as $term) {
-    if (!empty($term)) {
-        // Match the term in the name, gender, type, or ability fields
-        // For gender, we use exact matches rather than LIKE
-        $whereClauses[] = "(p.name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
-                            p.gender = '" . mysqli_real_escape_string($link, $term) . "' OR
-                            t.type_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%' OR
-                            a.ability_name LIKE '%" . mysqli_real_escape_string($link, $term) . "%')";
+
+if (!empty($name_query)) {
+    $whereClauses[] = "p.name LIKE '%" . mysqli_real_escape_string($link, $name_query) . "%'";
+}
+
+if (!empty($gender_query)) {
+    $whereClauses[] = "p.gender = '" . mysqli_real_escape_string($link, $gender_query) . "'";
+}
+
+if (!empty($type_query)) {
+    $type_terms = array_map('trim', explode(',', $type_query));
+
+    // If only one type is entered
+    if (count($type_terms) == 1) {
+        // For a single type search, use LIKE to match the type
+        foreach ($type_terms as $type) {
+            if (!empty($type)) {
+                $whereClauses[] = "t.type_name LIKE '%" . mysqli_real_escape_string($link, $type) . "%'";
+            }
+        }
+    } else {
+        // For multiple types, ensure Pokémon has all of them
+        $typeWhereClauses = [];
+        foreach ($type_terms as $type) {
+            if (!empty($type)) {
+                $typeWhereClauses[] = "t.type_name LIKE '%" . mysqli_real_escape_string($link, $type) . "%'";
+            }
+        }
+
+        // Use the EXISTS condition to check if Pokémon has all types
+        $whereClauses[] = "
+            EXISTS (
+                SELECT 1
+                FROM Pokemon_Type pt
+                JOIN Type t ON pt.type_id = t.type_id
+                WHERE pt.pokemon_id = p.pokemon_id
+                AND (" . implode(" OR ", $typeWhereClauses) . ")
+                GROUP BY pt.pokemon_id
+                HAVING COUNT(DISTINCT t.type_name) = " . count($type_terms) . "  -- Ensures all types are present
+            )
+        ";
     }
 }
 
-// If there are multiple terms, they should be treated as OR conditions between each term
+
+if (!empty($ability_query)) {
+    $ability_terms = array_map('trim', explode(',', $ability_query));
+
+    // If only one ability is entered
+    if (count($ability_terms) == 1) {
+        // For a single ability search, use LIKE to match the ability
+        foreach ($ability_terms as $ability) {
+            if (!empty($ability)) {
+                $whereClauses[] = "a.ability_name LIKE '%" . mysqli_real_escape_string($link, $ability) . "%'";
+            }
+        }
+    } else {
+        // For multiple abilities, ensure Pokémon has all of them
+        $abilityWhereClauses = [];
+        foreach ($ability_terms as $ability) {
+            if (!empty($ability)) {
+                $abilityWhereClauses[] = "a.ability_name LIKE '%" . mysqli_real_escape_string($link, $ability) . "%'";
+            }
+        }
+
+        // Use the EXISTS condition to check if Pokémon has all abilities
+        $whereClauses[] = "
+            EXISTS (
+                SELECT 1
+                FROM Pokemon_Ability pa
+                JOIN Ability a ON pa.ability_id = a.ability_id
+                WHERE pa.pokemon_id = p.pokemon_id
+                AND (" . implode(" OR ", $abilityWhereClauses) . ")
+                GROUP BY pa.pokemon_id
+                HAVING COUNT(DISTINCT a.ability_name) = " . count($ability_terms) . "  -- Ensures all abilities are present
+            )
+        ";
+    }
+}
+
+// Combine the WHERE clauses with OR logic
 $whereSql = '';
 if (count($whereClauses) > 0) {
-    $whereSql = "WHERE " . implode(" AND ", $whereClauses);
+    $whereSql = "WHERE " . implode(" OR ", $whereClauses);
 }
 
 // Fetch Pokémon data with the WHERE clause applied (search)
@@ -89,15 +161,32 @@ $sql = "
                     <!-- Search Form -->
                     <form action="index.php" method="get" class="form-inline">
                         <div class="form-group">
-                            <label for="search-query">Search (name, gender, type, ability):</label>
-                            <input type="text" id="search-query" name="search-query" class="form-control" placeholder="Search (e.g., Bulbasaur, Grass, Male)" value="<?php echo htmlspecialchars($search_query); ?>">
+                            <label for="name-query">Search by Name:</label>
+                            <input type="text" id="name-query" name="name-query" class="form-control" placeholder="e.g., Bulbasaur" value="<?php echo htmlspecialchars($name_query); ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender-query">Search by Gender:</label>
+                            <input type="text" id="gender-query" name="gender-query" class="form-control" placeholder="e.g., Male/Female" value="<?php echo htmlspecialchars($gender_query); ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="type-query">Search by Type(s):</label>
+                            <input type="text" id="type-query" name="type-query" class="form-control" placeholder="e.g., Grass, Poison" value="<?php echo htmlspecialchars($type_query); ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="ability-query">Search by Ability(s):</label>
+                            <input type="text" id="ability-query" name="ability-query" class="form-control" placeholder="e.g., Chlorophyll, Overgrow" value="<?php echo htmlspecialchars($ability_query); ?>">
                         </div>
                         <button type="submit" class="btn btn-primary">Search</button>
+                        
+                        <!-- Reset the search filters to display the original table -->
+                        <a href="index.php" class="btn btn-default">Display Original</a>
+                        
                         <div class="button-group">
                             <a href="createPokemon.php" class="btn btn-success">Add New Pokemon</a>
                             <a href="deletePokemon.php" class="btn btn-danger">Delete A Pokemon</a>
                         </div>
                     </form>
+
 
                     <?php
                     // Fetch and display Pokémon data with search applied
@@ -121,7 +210,7 @@ $sql = "
                             echo "<p class='lead'><em>No records were found.</em></p>";
                         }
                     } else {
-                        echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
+                        echo "ERROR: Could not execute $sql. " . mysqli_error($link);
                     }
 
                     ?>
