@@ -35,20 +35,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If no errors, proceed with insertion
     if (empty($name_err) && empty($gender_err) && empty($type_err) && empty($abilities_err)) {
-        // Insert into Pokémon table
-        $sql = "INSERT INTO Pokemon (name, gender) VALUES (?, ?)";
-        if ($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ss", $name, $gender);
-            if (mysqli_stmt_execute($stmt)) {
-                // Get the last inserted Pokémon ID
-                $pokemon_id = mysqli_insert_id($link);
+        // Begin a transaction
+        mysqli_begin_transaction($link);
+
+        try {
+            // Fetch the maximum Pokémon ID
+            $sql = "SELECT MAX(pokemon_id) AS max_pokemon_id FROM Pokemon";
+            $result = mysqli_query($link, $sql);
+            $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            $max_pokemon_id = $row['max_pokemon_id'];
+            $new_pokemon_id = $max_pokemon_id + 1;
+
+            // Insert into Pokémon table with the new Pokémon ID
+            $sql = "INSERT INTO Pokemon (pokemon_id, name, gender) VALUES (?, ?, ?)";
+            if ($stmt = mysqli_prepare($link, $sql)) {
+                mysqli_stmt_bind_param($stmt, "iss", $new_pokemon_id, $name, $gender);
+                if (!mysqli_stmt_execute($stmt)) {
+                    throw new Exception("Could not insert Pokémon.");
+                }
+                mysqli_stmt_close($stmt);
 
                 // Insert into Pokémon_Type
                 foreach ($type as $type_id) {
                     $sql_type = "INSERT INTO Pokemon_Type (pokemon_id, type_id) VALUES (?, ?)";
                     if ($stmt_type = mysqli_prepare($link, $sql_type)) {
-                        mysqli_stmt_bind_param($stmt_type, "ii", $pokemon_id, $type_id);
-                        mysqli_stmt_execute($stmt_type);
+                        mysqli_stmt_bind_param($stmt_type, "ii", $new_pokemon_id, $type_id);
+                        if (!mysqli_stmt_execute($stmt_type)) {
+                            throw new Exception("Could not insert Pokémon type.");
+                        }
+                        mysqli_stmt_close($stmt_type);
                     }
                 }
 
@@ -56,21 +71,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 foreach ($abilities as $ability_id) {
                     $sql_ability = "INSERT INTO Pokemon_Ability (pokemon_id, ability_id) VALUES (?, ?)";
                     if ($stmt_ability = mysqli_prepare($link, $sql_ability)) {
-                        mysqli_stmt_bind_param($stmt_ability, "ii", $pokemon_id, $ability_id);
-                        mysqli_stmt_execute($stmt_ability);
+                        mysqli_stmt_bind_param($stmt_ability, "ii", $new_pokemon_id, $ability_id);
+                        if (!mysqli_stmt_execute($stmt_ability)) {
+                            throw new Exception("Could not insert Pokémon ability.");
+                        }
+                        mysqli_stmt_close($stmt_ability);
                     }
                 }
-
-                // Redirect to index page
-                header("location: index.php");
-                exit();
-            } else {
-                echo "Something went wrong. Please try again later.";
             }
+
+            // Commit the transaction
+            mysqli_commit($link);
+
+            // Redirect to index page
+            header("location: index.php");
+            exit();
+
+        } catch (Exception $e) {
+            // Rollback the transaction in case of error
+            mysqli_rollback($link);
+            echo "Something went wrong. Please try again later.";
         }
-        mysqli_stmt_close($stmt);
     }
-    mysqli_close($link);
 }
 ?>
 
@@ -115,6 +137,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: relative;
             left: -150px; /* Shift the label 50px to the left */
         }
+
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -125,14 +151,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="page-header">
                         <h2>Create Pokémon</h2>
                     </div>
-                    <p>Please fill this form to add a new Pokémon to the database.</p>
+                    <p>Please fill this form and submit to add a new Pokémon to the database.</p>
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                        <div class="form-group">
+                        <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
                             <label>Name</label>
-                            <input type="text" name="name" class="form-control" value="<?php echo $name; ?>" required>
-                            <span class="help-block"><?php echo $name_err; ?></span>
+                            <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
+                            <span class="help-block error"><?php echo $name_err; ?></span>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group <?php echo (!empty($gender_err)) ? 'has-error' : ''; ?>">
                             <label>Gender</label>
                             <select name="gender" class="form-control">
                                 <option value="">Select Gender</option>
@@ -141,7 +167,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <option value="Female" <?php echo ($gender == 'Female') ? 'selected' : ''; ?>>Female</option>
                                 <option value="Genderless" <?php echo ($gender == 'Genderless') ? 'selected' : ''; ?>>Genderless</option>
                             </select>
-                            <span class="help-block"><?php echo $gender_err; ?></span>
+                            <span class="help-block error"><?php echo $gender_err; ?></span>
                         </div>
 
                         <!-- Types Checkbox Grid -->
@@ -155,48 +181,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     echo "<label><input type='checkbox' name='type[]' value='" . $row_type['type_id'] . "'> " . $row_type['type_name'] . "</label>";
                                 }
                                 ?>
-                               <style type="text/css">
-        .wrapper {
-            width: 500px;
-            margin: 0 auto;
-        }
-
-        /* Grid layout for types (3 columns) */
-        .type-checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
-            gap: 5px; /* Space between checkboxes */
-        }
-
-        .type-checkbox-grid label {
-            display: block;
-        }
-
-        /* Grid layout for abilities (5 columns) */
-        .ability-checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);  /* 5 equal-width columns */
-            gap: 10px; /* Space between checkboxes */
-            margin-left: -150px;  /* Extend the grid beyond the wrapper */
-            margin-right: -150px; /* Extend the grid beyond the wrapper */
-        }
-
-        .ability-checkbox-grid label {
-            display: block;
-
-        }
-
-        .abilities-label {
-            position: relative;
-            left: -150px; /* Shift the label 50px to the left */
-        }
-    </style></div>
-                            <span class="help-block"><?php echo $type_err; ?></span>
+                            </div>
+                            <span class="help-block error"><?php echo $type_err; ?></span>
                         </div>
 
                         <!-- Abilities Checkbox Grid -->
                         <div class="form-group">
-                            <label class = "abilities-label">Abilities</label><br>
+                            <label class="abilities-label">Abilities</label><br>
                             <div class="ability-checkbox-grid">
                                 <?php
                                 $sql_abilities = "SELECT ability_id, ability_name FROM Ability";
@@ -206,7 +197,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 }
                                 ?>
                             </div>
-                            <span class="help-block"><?php echo $abilities_err; ?></span>
+                            <span class="help-block error"><?php echo $abilities_err; ?></span>
                         </div>
 
                         <input type="submit" class="btn btn-primary" value="Submit">
@@ -218,3 +209,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
+
+<?php
+// Close connection only after all operations are complete
+mysqli_close($link);
+?>

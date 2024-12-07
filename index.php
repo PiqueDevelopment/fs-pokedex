@@ -193,7 +193,7 @@ $sql = "
                     if ($result = mysqli_query($link, $sql)) {
                         if (mysqli_num_rows($result) > 0) {
                             echo "<table class='table table-bordered table-striped'>";
-                            echo "<thead><tr><th>ID</th><th>Name</th><th>Gender</th><th>Type</th><th>Abilities</th><th>Action</th></tr></thead><tbody>";
+                            echo "<thead><tr><th>ID</th><th>Name</th><th>Gender</th><th>Type</th><th>Abilities</th><th class='action-column'>Action</th></tr></thead><tbody>";
                             while ($row = mysqli_fetch_array($result)) {
                                 echo "<tr>";
                                 echo "<td>" . $row['pokemon_id'] . "</td>";
@@ -201,7 +201,10 @@ $sql = "
                                 echo "<td>" . $row['gender'] . "</td>";
                                 echo "<td>" . $row['types'] . "</td>";
                                 echo "<td>" . $row['abilities'] . "</td>";
-                                echo "<td><a href='updatePokemon.php?id_or_name=" . $row['pokemon_id'] . "' class='btn btn-info' title='Update Pokémon'>Update</a></td>";
+                                echo "<td class='action-column'>";
+                                echo "<a href='updatePokemon.php?id_or_name=" . $row['pokemon_id'] . "' class='btn btn-info' title='Update Pokémon'>Update</a> ";
+                                echo "<a href='deletePokemon.php?id=" . $row['pokemon_id'] . "' class='btn btn-danger' title='Delete Pokémon' onclick='return confirm(\"Are you sure you want to delete this Pokémon?\")'>Delete</a>";
+                                echo "</td>";
                                 echo "</tr>";
                             }
                             echo "</tbody></table>";
@@ -229,12 +232,10 @@ $sql = "
                     </div>
 
                     <?php
-                    // Fetch and display Team data
+                    // Fetch and display Team data with search applied
                     $teamSql = "
                         SELECT 
-                            t.team_id, 
-                            t.team_name, 
-                            GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', ') AS team_members
+                            t.team_id, t.team_name, GROUP_CONCAT(p.name SEPARATOR ', ') AS team_members
                         FROM 
                             Teams t
                         LEFT JOIN 
@@ -248,21 +249,22 @@ $sql = "
                     if ($result = mysqli_query($link, $teamSql)) {
                         if (mysqli_num_rows($result) > 0) {
                             echo "<table class='table table-bordered table-striped'>";
-                            echo "<thead><tr><th>ID</th><th>Team Name</th><th>Team Members</th><th>Action</th></tr></thead><tbody>";
+                            echo "<thead><tr><th>ID</th><th>Team Name</th><th>Team Members</th><th class='action-column'>Action</th></tr></thead><tbody>";
                             while ($row = mysqli_fetch_array($result)) {
                                 echo "<tr>";
                                 echo "<td>" . $row['team_id'] . "</td>";
                                 echo "<td>" . $row['team_name'] . "</td>";
                                 echo "<td>" . ($row['team_members'] ? $row['team_members'] : "<em>No members yet</em>") . "</td>";
-                                echo "<td>";
-                                echo "<a href='updateTeam.php?team_id=" . $row['team_id'] . "' class='btn btn-info'>Update</a>";
+                                echo "<td class='action-column'>";
+                                echo "<a href='updateTeam.php?team_id=" . $row['team_id'] . "' class='btn btn-info'>Update</a> ";
+                                echo "<a href='deleteTeam.php?id=" . $row['team_id'] . "' class='btn btn-danger' title='Delete Team' onclick='return confirm(\"Are you sure you want to delete this team?\")'>Delete</a>";
                                 echo "</td>";
                                 echo "</tr>";
                             }
                             echo "</tbody></table>";
                             mysqli_free_result($result);
                         } else {
-                            echo "<p class='lead'><em>No teams were found.</em></p>";
+                            echo "<p class='lead'><em>No records were found.</em></p>";
                         }
                     } else {
                         echo "ERROR: Could not execute $teamSql. " . mysqli_error($link);

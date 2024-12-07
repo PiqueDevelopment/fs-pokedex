@@ -87,6 +87,10 @@ body {
     background-color: #e9ecef;
 }
 
+.action-column {
+    width: 13%;
+}
+
 /* Form styling */
 .form-inline .form-group {
     margin-right: 10px;

@@ -2,59 +2,39 @@
 // Include config file
 require_once "config.php";
 
-// Define variables and initialize with empty values
-$pokemon_id = "";
-$pokemon_id_err = "";
+// Check if an ID is provided
+if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
+    $pokemon_id = trim($_GET["id"]);
 
-// Processing form data when form is submitted
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-    // Validate pokemon_id
-    $pokemon_id = trim($_POST["pokemon_id"]);
-    if(empty($pokemon_id)){
-        $pokemon_id_err = "Please enter a Pokémon ID.";
-    } elseif(!ctype_digit($pokemon_id)){
-        $pokemon_id_err = "Please enter a valid Pokémon ID.";
-    }
+    // Prepare a delete statement
+    $sql = "DELETE FROM Pokemon WHERE pokemon_id = ?";
 
-    // Check input errors before deleting in database
-    if(empty($pokemon_id_err)){
-        // Prepare a delete statement
-        $sql = "DELETE FROM Pokemon WHERE pokemon_id = ?";
+    if ($stmt = mysqli_prepare($link, $sql)) {
+        // Bind variables to the prepared statement as parameters
+        mysqli_stmt_bind_param($stmt, "i", $param_pokemon_id);
 
-        if($stmt = mysqli_prepare($link, $sql)){
-            // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "i", $param_pokemon_id);
+        // Set parameters
+        $param_pokemon_id = $pokemon_id;
 
-            // Set parameters
-            $param_pokemon_id = $pokemon_id;
-
-            // Attempt to execute the prepared statement
-            if(mysqli_stmt_execute($stmt)){
-                // Get the max pokemon_id
-                $sql_max_id = "SELECT MAX(pokemon_id) AS max_id FROM Pokemon";
-                if($result = mysqli_query($link, $sql_max_id)){
-                    $row = mysqli_fetch_array($result);
-                    $max_id = $row['max_id'] + 1;
-
-                    // Set the auto-increment value to the next highest value
-                    $sql_auto_increment = "ALTER TABLE Pokemon AUTO_INCREMENT = $max_id";
-                    mysqli_query($link, $sql_auto_increment);
-                }
-
-                // Records deleted successfully. Redirect to landing page
-                header("location: index.php");
-                exit();
-            } else{
-                echo "Something went wrong. Please try again later.";
-            }
+        // Attempt to execute the prepared statement
+        if (mysqli_stmt_execute($stmt)) {
+            // Records deleted successfully. Redirect to landing page
+            header("location: index.php");
+            exit();
+        } else {
+            echo "Something went wrong. Please try again later.";
         }
-
-        // Close statement
-        mysqli_stmt_close($stmt);
     }
+
+    // Close statement
+    mysqli_stmt_close($stmt);
 
     // Close connection
     mysqli_close($link);
+} else {
+    // Redirect to error page if ID is not provided
+    header("location: error.php");
+    exit();
 }
 ?>
 
