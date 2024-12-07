@@ -2,63 +2,39 @@
 // Include config file
 require_once "config.php";
 
-// Define variables and initialize with empty values
-$team_id = "";
-$team_id_err = "";
+// Check if an ID is provided
+if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
+    $team_id = trim($_GET["id"]);
 
-// Processing form data when form is submitted
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-    // Validate team_id
-    $team_id = trim($_POST["team_id"]);
-    if(empty($team_id)){
-        $team_id_err = "Please enter a Team ID.";
-    } elseif(!ctype_digit($team_id)){
-        $team_id_err = "Please enter a valid Team ID.";
-    }
+    // Prepare a delete statement
+    $sql = "DELETE FROM Teams WHERE team_id = ?";
 
-    // Check input errors before deleting in database
-    if(empty($team_id_err)){
-        // Prepare a delete statement for the Pokemon_Team relationships first
-        $sql = "DELETE FROM Pokemon_Team WHERE team_id = ?";
+    if ($stmt = mysqli_prepare($link, $sql)) {
+        // Bind variables to the prepared statement as parameters
+        mysqli_stmt_bind_param($stmt, "i", $param_team_id);
 
-        if($stmt = mysqli_prepare($link, $sql)){
-            // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "i", $param_team_id);
+        // Set parameters
+        $param_team_id = $team_id;
 
-            // Set parameters
-            $param_team_id = $team_id;
-
-            // Attempt to execute the prepared statement
-            if(mysqli_stmt_execute($stmt)){
-                // Prepare a delete statement for the team
-                $sql = "DELETE FROM Teams WHERE team_id = ?";
-                if($stmt = mysqli_prepare($link, $sql)){
-                    // Bind variables to the prepared statement as parameters
-                    mysqli_stmt_bind_param($stmt, "i", $param_team_id);
-
-                    // Set parameters
-                    $param_team_id = $team_id;
-
-                    // Attempt to execute the prepared statement
-                    if(mysqli_stmt_execute($stmt)){
-                        // Redirect to landing page after successful deletion
-                        header("location: index.php");
-                        exit();
-                    } else{
-                        echo "Something went wrong while deleting the team. Please try again later.";
-                    }
-                }
-            } else{
-                echo "Something went wrong while deleting the Pokémon-Team relationship. Please try again later.";
-            }
+        // Attempt to execute the prepared statement
+        if (mysqli_stmt_execute($stmt)) {
+            // Records deleted successfully. Redirect to landing page
+            header("location: index.php");
+            exit();
+        } else {
+            echo "Something went wrong. Please try again later.";
         }
-
-        // Close statement
-        mysqli_stmt_close($stmt);
     }
+
+    // Close statement
+    mysqli_stmt_close($stmt);
 
     // Close connection
     mysqli_close($link);
+} else {
+    // Redirect to error page if ID is not provided
+    header("location: error.php");
+    exit();
 }
 ?>
 

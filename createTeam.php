@@ -38,10 +38,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_begin_transaction($link);
 
         try {
-            // Insert the team name into Teams table
-            $sql = "INSERT INTO Teams (team_name) VALUES (?)";
+            // Fetch the maximum team ID
+            $sql = "SELECT MAX(team_id) AS max_team_id FROM Teams";
+            $result = mysqli_query($link, $sql);
+            $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            $max_team_id = $row['max_team_id'];
+            $new_team_id = $max_team_id + 1;
+
+            // Insert the team name into Teams table with the new team ID
+            $sql = "INSERT INTO Teams (team_id, team_name) VALUES (?, ?)";
             if ($stmt = mysqli_prepare($link, $sql)) {
-                mysqli_stmt_bind_param($stmt, "s", $param_team_name);
+                mysqli_stmt_bind_param($stmt, "is", $new_team_id, $param_team_name);
                 $param_team_name = $team_name;
 
                 if (!mysqli_stmt_execute($stmt)) {
@@ -49,15 +56,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 mysqli_stmt_close($stmt);
 
-                // Get the ID of the newly inserted team
-                $team_id = mysqli_insert_id($link);
-
                 // Insert the Pokémon-Team relationships
                 if (!empty($selected_pokemon)) {
                     $sql = "INSERT INTO Pokemon_Team (team_id, pokemon_id) VALUES (?, ?)";
                     if ($stmt = mysqli_prepare($link, $sql)) {
                         foreach ($selected_pokemon as $pokemon_id) {
-                            mysqli_stmt_bind_param($stmt, "ii", $team_id, $pokemon_id);
+                            mysqli_stmt_bind_param($stmt, "ii", $new_team_id, $pokemon_id);
                             if (!mysqli_stmt_execute($stmt)) {
                                 throw new Exception("Could not insert Pokémon-Team relationship.");
                             }
