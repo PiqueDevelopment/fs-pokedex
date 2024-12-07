@@ -183,7 +183,7 @@ $sql = "
                         
                         <div class="button-group">
                             <a href="createPokemon.php" class="btn btn-success">Add New Pokemon</a>
-                            <a href="deletePokemon.php" class="btn btn-danger">Delete A Pokemon</a>
+                            <!-- <a href="deletePokemon.php" class="btn btn-danger">Delete A Pokemon</a> -->
                         </div>
                     </form>
 
@@ -226,7 +226,7 @@ $sql = "
                         <h3 class="pull-left">Team List</h3>
                         <div class="button-group pull-right">
                             <a href="createTeam.php" class="btn btn-success">Add New Team</a>
-                            <a href="deleteTeam.php" class="btn btn-danger">Delete a Team</a>
+                            <!-- <a href="deleteTeam.php" class="btn btn-danger">Delete a Team</a> -->
                         </div>
                     </div>
                     </div>
