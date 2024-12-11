@@ -1,3 +1,6 @@
+<!-- Group Number: 46 -->
+<!-- Group Names: Dylan Liu, Michael Bernardino, Brendon Tran -->
+
 <?php
 	/* Display Errors */
 	//ini_set('display_errors', 1);

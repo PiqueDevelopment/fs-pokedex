@@ -1,3 +1,6 @@
+<!-- Group Number: 46 -->
+<!-- Group Names: Dylan Liu, Michael Bernardino, Brendon Tran -->
+
 <?php
 require_once "config.php";
 
