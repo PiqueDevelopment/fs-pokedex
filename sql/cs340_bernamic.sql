@@ -1,3 +1,6 @@
+-- Group Number: 46
+-- Group Names: Dylan Liu, Michael Bernardino, Brendon Tran
+
 -- phpMyAdmin SQL Dump
 -- version 5.2.1-1.el7.remi
 -- https://www.phpmyadmin.net/
